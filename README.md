@@ -1,6 +1,6 @@
-# ✦ MCL Awards
+# ✦ Awards MCL
 
-**MCL Awards** is an immersive rank and achievement collection mod designed specifically for **Mineclonia** (Luanti engine). It adds a rewarding sense of progression, cosmetic flair, and an MMORPG-style collection interface for your players!
+**Awards MCL** is an immersive rank and achievement collection mod designed specifically for **Mineclonia** (Luanti engine). It adds a rewarding sense of progression, cosmetic flair, and an MMORPG-style collection interface for your players!
 
 ---
 

@@ -3,14 +3,14 @@ local S = core.get_translator(core.get_current_modname())
 
 local selected_rank_idx = {}
 
-function mcl_awards.show_collection_ui(player, selected_idx)
+function awards_mcl.show_collection_ui(player, selected_idx)
 	local name = player:get_player_name()
 	local ok, level = pcall(mcl_experience.get_level, player)
 	if not ok or type(level) ~= "number" then
 		level = 0
 	end
 
-	local ranks = mcl_awards.ranks
+	local ranks = awards_mcl.ranks
 	local total_medals = #ranks - 1
 	local unlocked_count = 0
 	local current_highest_idx = 2
@@ -61,7 +61,7 @@ function mcl_awards.show_collection_ui(player, selected_idx)
 		style_names[#style_names + 1] = "select_rank_" .. i
 	end
 	fs[#fs + 1] = "style[" .. table.concat(style_names, ",") ..
-		";bgimg=mcl_awards_blank.png;bgimg_pressed=mcl_awards_blank.png;border=false]"
+		";bgimg=awards_mcl_blank.png;bgimg_pressed=awards_mcl_blank.png;border=false]"
 
 	local col_count = 3
 	local card_w = 2.25
@@ -100,7 +100,7 @@ function mcl_awards.show_collection_ui(player, selected_idx)
 			local img_h = 1.00
 			local img_x = cx + (card_w - img_w) / 2
 			local img_y = cy + 0.10
-			local item_name = "mcl_awards:item_" .. r.name:lower()
+			local item_name = "awards_mcl:item_" .. r.name:lower()
 
 			fs[#fs + 1] = string.format("item_image[%.2f,%.2f;%.2f,%.2f;%s]", img_x, img_y, img_w, img_h, item_name)
 			-- When locked, add a dark overlay for a silhouette effect
@@ -125,7 +125,7 @@ function mcl_awards.show_collection_ui(player, selected_idx)
 	fs[#fs + 1] = "box[8.3,2.25;4.7,2.80;#0D111A]"
 
 	if sel_rank.texture then
-		local big_item = "mcl_awards:item_" .. sel_rank.name:lower()
+		local big_item = "awards_mcl:item_" .. sel_rank.name:lower()
 		-- Native asset ratio 40x80 → width = height / 2
 		local bx_w = 1.0
 		local bx_h = 2.0
@@ -157,26 +157,42 @@ function mcl_awards.show_collection_ui(player, selected_idx)
 
 	fs[#fs + 1] = "button_exit[10.8,7.80;2.2,0.50;close_ui;Close]"
 
-	core.show_formspec(name, "mcl_awards:collection", table.concat(fs))
+	core.show_formspec(name, "awards_mcl:collection", table.concat(fs))
 end
 
 -- Handle button clicks from the inventory button as well as the collection GUI
 core.register_on_player_receive_fields(function(player, formname, fields)
-	if fields["mcl_awards_open_collection"] then
-		mcl_awards.show_collection_ui(player)
+	if fields["awards_mcl_open_collection"] then
+		awards_mcl.show_collection_ui(player)
 		return true
 	end
 
-	if formname ~= "mcl_awards:collection" then
+	if formname ~= "awards_mcl:collection" then
 		return false
 	end
 
-	for i = 2, #mcl_awards.ranks do
+	for i = 2, #awards_mcl.ranks do
 		if fields["select_rank_" .. i] then
-			mcl_awards.show_collection_ui(player, i)
+			awards_mcl.show_collection_ui(player, i)
 			return true
 		end
 	end
 
 	return true
 end)
+
+-- ---------------------------------------------------------------------------
+-- Chat command
+-- ---------------------------------------------------------------------------
+
+core.register_chatcommand("collection", {
+	description = S("Open the Award Collection UI"),
+	func = function(name)
+		local player = core.get_player_by_name(name)
+		if not player then
+			return false, S("You must be online to open the Award Collection.")
+		end
+		awards_mcl.show_collection_ui(player)
+		return true
+	end,
+})

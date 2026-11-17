@@ -13,11 +13,11 @@
 local modname = core.get_current_modname()
 local S = core.get_translator and core.get_translator(modname) or function(s) return s end
 
-mcl_awards = {}
+awards_mcl = {}
 
-local chat_tag_enabled = core.settings:get_bool("mcl_awards.chat_tag", true)
-local head_medal_enabled = core.settings:get_bool("mcl_awards.head_medal", true)
-local fanfare_enabled = core.settings:get_bool("mcl_awards.rankup_fanfare", true)
+local chat_tag_enabled = core.settings:get_bool("awards_mcl.chat_tag", true)
+local head_medal_enabled = core.settings:get_bool("awards_mcl.head_medal", true)
+local fanfare_enabled = core.settings:get_bool("awards_mcl.rankup_fanfare", true)
 
 local last_inv_base = {} -- player name -> base inventory formspec last built
 
@@ -27,17 +27,17 @@ local last_inv_base = {} -- player name -> base inventory formspec last built
 
 local ranks = {
 	{ name = "Nothing",     level = 0,   color = "#FFFFFF", texture = nil },                  -- no medal at all
-	{ name = "Bronze",      level = 5,   color = "#DA9A3C", texture = "mcl_awards_bronze.png" },
-	{ name = "Silver",      level = 10,  color = "#D8DCE0", texture = "mcl_awards_silver.png" },
-	{ name = "Gold",        level = 15,  color = "#FFD74A", texture = "mcl_awards_gold.png" },
-	{ name = "Diamond",     level = 20,  color = "#4AEDD9", texture = "mcl_awards_diamond.png" },
-	{ name = "Netherite",   level = 30,  color = "#9C8E95", texture = "mcl_awards_netherite.png" },
-	{ name = "Veteran",     level = 40,  color = "#6FD7FF", texture = "mcl_awards_veteran.png" },
-	{ name = "Immortal",    level = 55,  color = "#D3A4FF", texture = "mcl_awards_immortal.png" },
-	{ name = "Untouchable", level = 75,  color = "#C05AFF", texture = "mcl_awards_untouchable.png" },
-	{ name = "Eternal",     level = 100, color = "#FFD93B", texture = "mcl_awards_eternal.png" },
+	{ name = "Bronze",      level = 5,   color = "#DA9A3C", texture = "awards_mcl_bronze.png" },
+	{ name = "Silver",      level = 10,  color = "#D8DCE0", texture = "awards_mcl_silver.png" },
+	{ name = "Gold",        level = 15,  color = "#FFD74A", texture = "awards_mcl_gold.png" },
+	{ name = "Diamond",     level = 20,  color = "#4AEDD9", texture = "awards_mcl_diamond.png" },
+	{ name = "Netherite",   level = 30,  color = "#9C8E95", texture = "awards_mcl_netherite.png" },
+	{ name = "Veteran",     level = 40,  color = "#6FD7FF", texture = "awards_mcl_veteran.png" },
+	{ name = "Immortal",    level = 55,  color = "#D3A4FF", texture = "awards_mcl_immortal.png" },
+	{ name = "Untouchable", level = 75,  color = "#C05AFF", texture = "awards_mcl_untouchable.png" },
+	{ name = "Eternal",     level = 100, color = "#FFD93B", texture = "awards_mcl_eternal.png" },
 }
-mcl_awards.ranks = ranks
+awards_mcl.ranks = ranks
 
 -- Badge shown inside nametags and chat.
 local GLYPH = "★"
@@ -87,7 +87,7 @@ for _, r in ipairs(ranks) do
 	if r.texture then
 		local props = table.copy(MEDAL_PROPS)
 		props.textures = { r.texture }
-		core.register_entity("mcl_awards:medal_" .. r.name:lower(), {
+		core.register_entity("awards_mcl:medal_" .. r.name:lower(), {
 			initial_properties = props,
 			on_activate = function(self, staticdata, dtime_s)
 				-- Purely visual sprite: cannot be attacked / used for anything
@@ -100,7 +100,7 @@ end
 -- Register the medal as an item so Luanti's engine is forced to load its texture
 for _, r in ipairs(ranks) do
 	if r.texture then
-		core.register_craftitem("mcl_awards:item_" .. r.name:lower(), {
+		core.register_craftitem("awards_mcl:item_" .. r.name:lower(), {
 			description = S("@1 Medal", r.name),
 			inventory_image = r.texture,
 			groups = { not_in_creative_inventory = 1 },
@@ -119,7 +119,7 @@ local function remove_medal(player_name)
 end
 
 local function medal_defname(r)
-	return "mcl_awards:medal_" .. r.name:lower()
+	return "awards_mcl:medal_" .. r.name:lower()
 end
 
 local function update_medal(player, idx)
@@ -185,7 +185,7 @@ local function update_nametag(player, idx, level)
 	if ok then
 		current_tag_text[name] = text
 	else
-		core.log("warning", "[mcl_awards] could not set nametag: " .. tostring(err))
+		core.log("warning", "[awards_mcl] could not set nametag: " .. tostring(err))
 	end
 end
 
@@ -392,7 +392,7 @@ local function badge_formspec(player, formspec)
 	local btn_h = 0.55
 	local btn_x = mx + 0.12
 	local btn_y = by + (icon_h - btn_h) / 2
-	local btn_icon = "mcl_awards_icon_" .. r.name:lower() .. ".png"
+	local btn_icon = "awards_mcl_icon_" .. r.name:lower() .. ".png"
 	local ic_x = btn_x + 0.14
 	local ic_y = btn_y + (btn_h - 0.34) / 2
 	local tx = btn_x + 0.58
@@ -421,19 +421,19 @@ local function badge_formspec(player, formspec)
 		core.formspec_escape(core.colorize(r.color, tostring(level))), "]",
 
 		-- 3. Award Collection button (dark card + rank icon + gold text)
-		"style[mcl_awards_open_collection;border=false;bgimg=",
+		"style[awards_mcl_open_collection;border=false;bgimg=",
 		card_tex(card_border, "#1E293BE6"),
 		";bgimg_hovered=", card_tex(card_gold, "#24304AE6"),
 		";bgimg_pressed=", card_tex(card_gold, "#151B26E6"), "]",
 		"image_button[", string.format("%.3f", btn_x), ",", string.format("%.3f", btn_y),
 		";", string.format("%.3f", btn_w), ",", string.format("%.3f", btn_h),
-		";mcl_awards_blank.png;mcl_awards_open_collection;]",
+		";awards_mcl_blank.png;awards_mcl_open_collection;]",
 		"image[", string.format("%.3f", ic_x), ",", string.format("%.3f", ic_y),
 		";0.34,0.34;", btn_icon, "]",
 		"label[", string.format("%.3f", tx), ",", string.format("%.3f", ty), ";",
 		core.formspec_escape(core.colorize(card_gold, "AWARDS")), "]",
 
-		"tooltip[mcl_awards_open_collection;Buka Award Collection (Lv. ", level, ")]",
+		"tooltip[awards_mcl_open_collection;Buka Award Collection (Lv. ", level, ")]",
 	})
 end
 
