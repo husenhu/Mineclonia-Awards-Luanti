@@ -1,4 +1,4 @@
-Copyright (c) 2026 Husen (RouterOS - Game Account) (https://github.com/husenhu)
+Copyright (c) 2026 Husen (Game Account: RouterOS) (https://github.com/husenhu)
 
 Creative Commons Attribution 3.0 Unported
 =========================================
