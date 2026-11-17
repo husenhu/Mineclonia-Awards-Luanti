@@ -1,0 +1,4 @@
+# MCL Awards
+chat_tag (Show rank tag in chat) bool true
+head_medal (Show medal above players' heads) bool true
+rankup_fanfare (Particles + fanfare sound on rank-up) bool true
