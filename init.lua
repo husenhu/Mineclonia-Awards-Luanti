@@ -25,17 +25,63 @@ local last_inv_base = {} -- player name -> base inventory formspec last built
 -- Rank table (index 1 = lowest). Order must go from lowest to highest.
 -- ---------------------------------------------------------------------------
 
+-- Each rank carries a one-time claimable reward (see rewards.lua, claimed
+-- through the Award Collection GUI). Reward specs are either
+-- "itemstring count" strings or { item=, count=, meta=? } tables for items
+-- that need stack metadata (e.g. Potion of Strength II).
 local ranks = {
-	{ name = "Nothing",     level = 0,   color = "#FFFFFF", texture = nil },                  -- no medal at all
-	{ name = "Bronze",      level = 5,   color = "#DA9A3C", texture = "awards_mcl_bronze.png" },
-	{ name = "Silver",      level = 10,  color = "#D8DCE0", texture = "awards_mcl_silver.png" },
-	{ name = "Gold",        level = 15,  color = "#FFD74A", texture = "awards_mcl_gold.png" },
-	{ name = "Diamond",     level = 20,  color = "#4AEDD9", texture = "awards_mcl_diamond.png" },
-	{ name = "Netherite",   level = 30,  color = "#9C8E95", texture = "awards_mcl_netherite.png" },
-	{ name = "Veteran",     level = 40,  color = "#6FD7FF", texture = "awards_mcl_veteran.png" },
-	{ name = "Immortal",    level = 55,  color = "#D3A4FF", texture = "awards_mcl_immortal.png" },
-	{ name = "Untouchable", level = 75,  color = "#C05AFF", texture = "awards_mcl_untouchable.png" },
-	{ name = "Eternal",     level = 100, color = "#FFD93B", texture = "awards_mcl_eternal.png" },
+	{ name = "Nothing",     level = 0,   color = "#FFFFFF", texture = nil, rewards = {} }, -- no medal at all
+	{
+		name = "Bronze",      level = 5,   color = "#DA9A3C", texture = "awards_mcl_bronze.png",
+		effect_name = S("Debu Tanah"),
+		rewards = { "mcl_core:emerald 5", "mcl_core:iron_ingot 8", "mcl_mobitems:cooked_beef 4" },
+	},
+	{
+		name = "Silver",      level = 10,  color = "#D8DCE0", texture = "awards_mcl_silver.png",
+		effect_name = S("Percikan Pasir"),
+		rewards = { "mcl_core:emerald 10", "mcl_core:diamond 2", "mcl_core:apple_gold 1", "mcl_core:lapis 16" },
+	},
+	{
+		name = "Gold",        level = 15,  color = "#FFD74A", texture = "awards_mcl_gold.png",
+		effect_name = S("Serpihan Batu"),
+		rewards = { "mcl_core:emerald 16", "mcl_core:diamond 4", "mcl_core:apple_gold 2", "mcl_experience:bottle 8" },
+	},
+	{
+		name = "Diamond",     level = 20,  color = "#4AEDD9", texture = "awards_mcl_diamond.png",
+		effect_name = S("Kilau Mineral"),
+		rewards = { "mcl_core:emerald 24", "mcl_core:diamond 8", "mcl_mobitems:nametag 1",
+			"mcl_mobitems:saddle 1", "mcl_experience:bottle 16" },
+	},
+	{
+		name = "Netherite",   level = 30,  color = "#9C8E95", texture = "awards_mcl_netherite.png",
+		effect_name = S("Energi Kristal"),
+		rewards = { "mcl_core:emerald 32", "mcl_core:diamond 12", "mcl_nether:netherite_scrap 2",
+			"mcl_potions:fire_resistance 1" },
+	},
+	{
+		name = "Veteran",     level = 40,  color = "#6FD7FF", texture = "awards_mcl_veteran.png",
+		effect_name = S("Aura Api"),
+		rewards = { "mcl_core:emerald 48", "mcl_core:diamond 16", "mcl_totems:totem 1",
+			"mcl_core:apple_gold 4" },
+	},
+	{
+		name = "Immortal",    level = 55,  color = "#D3A4FF", texture = "awards_mcl_immortal.png",
+		effect_name = S("Badai Petir"),
+		rewards = { "mcl_core:emeraldblock 1", "mcl_core:diamond 24", "mcl_nether:netherite_ingot 1",
+			"mcl_totems:totem 1" },
+	},
+	{
+		name = "Untouchable", level = 75,  color = "#C05AFF", texture = "awards_mcl_untouchable.png",
+		effect_name = S("Aura Dewa"),
+		rewards = { "mcl_core:emeraldblock 2", "mcl_core:diamondblock 4",
+			"mcl_core:apple_gold_enchanted 1", "mcl_nether:netherite_ingot 2" },
+	},
+	{
+		name = "Eternal",     level = 100, color = "#FFD93B", texture = "awards_mcl_eternal.png",
+		effect_name = S("Supernova"),
+		rewards = { "mcl_core:emeraldblock 4", "mcl_core:diamondblock 8", "mcl_armor:elytra 1",
+			"mcl_core:apple_gold_enchanted 2", "mcl_totems:totem 2" },
+	},
 }
 awards_mcl.ranks = ranks
 
@@ -267,6 +313,11 @@ local function update_player(player)
 
 	local idx = rank_index_for_level(level)
 
+	-- Keep the rank aura in sync (cheap no-op while the rank is unchanged)
+	if awards_mcl.effects then
+		awards_mcl.effects.update(player, idx)
+	end
+
 	-- First check after join: adopt the current rank silently, so players do
 	-- not get spammed with a rank-up for progress from a previous session.
 	if not st.adopted then
@@ -480,6 +531,10 @@ core.register_chatcommand("rank", {
 		local lines = {
 			core.colorize(r.color, S("@1 — Level @2", r.name, level)),
 		}
+		local eff = awards_mcl.effects and awards_mcl.effects.get_name(idx)
+		if eff then
+			lines[#lines + 1] = S("Aura: @1", core.colorize(r.color, eff))
+		end
 		local nxt = ranks[idx + 1]
 		if nxt then
 			lines[#lines + 1] = S("Next rank: @1 at level @2 (@3 levels to go)",
@@ -498,6 +553,24 @@ core.register_chatcommand("rank", {
 		return true, table.concat(lines, "\n")
 	end,
 })
+
+-- ---------------------------------------------------------------------------
+-- Monster Slayer (kill statistics per monster family)
+-- ---------------------------------------------------------------------------
+
+dofile(core.get_modpath(modname) .. "/monster_slayer.lua")
+
+-- ---------------------------------------------------------------------------
+-- Reward claiming (XP ranks + Monster Slayer trophies)
+-- ---------------------------------------------------------------------------
+
+dofile(core.get_modpath(modname) .. "/rewards.lua")
+
+-- ---------------------------------------------------------------------------
+-- Rank particle auras (follow the player, one per rank)
+-- ---------------------------------------------------------------------------
+
+dofile(core.get_modpath(modname) .. "/effects.lua")
 
 -- ---------------------------------------------------------------------------
 -- UI for Award Collection
